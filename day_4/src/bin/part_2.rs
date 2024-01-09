@@ -1,18 +1,20 @@
 use itertools::Itertools;
 use std::time::Instant;
 
-fn valid_password(num: String) -> bool {
-    let mut no_decrease = true;
+fn valid_password(num: usize) -> bool {
+    let mut counts = [0; 10];
+    let mut prev = 0;
+    let mut decreasing = false;
 
-    for (c1, c2) in num.chars().tuple_windows() {
-        if c1 > c2 {
-            no_decrease = false;
+    for d in num.to_string().chars().map(|c| c.to_digit(10).unwrap()) {
+        counts[d as usize] += 1;
+        if d < prev {
+            decreasing = true;
         }
+        prev = d;
     }
 
-    let num_counts = num.chars().counts().iter().any(|(_, i)| i == &2);
-
-    num_counts && no_decrease
+    !decreasing && counts.iter().any(|&count| count == 2)
 }
 
 fn process(input: &str) -> usize {
@@ -25,9 +27,7 @@ fn process(input: &str) -> usize {
 
     let mut valid_count = 0;
     for i in s..e {
-        let num = i.to_string();
-
-        if valid_password(num) {
+        if valid_password(i) {
             valid_count += 1;
         }
     }
