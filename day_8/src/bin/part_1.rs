@@ -1,33 +1,35 @@
 use itertools::Itertools;
-use std::time::Instant;
+use std::{collections::HashMap, time::Instant};
 
 fn process(input: &str) -> usize {
     let layer_size = 25 * 6;
 
-    let layers = input
+    let min_layer = input
         .chars()
         .chunks(layer_size)
         .into_iter()
         .map(|c| c.into_iter().filter_map(|c| c.to_digit(10)).collect_vec())
         .filter(|v| !v.is_empty())
-        .collect_vec();
+        .fold((100000, (0, 0)), |(min, (count_1, count_2)), layer| {
+            let mut map = HashMap::new();
 
-    let mut fewest_0 = 100000000;
-    let mut fewest_0_layer = vec![];
+            for &c in &layer {
+                let count = map.entry(c).or_insert(0);
+                *count += 1;
+            }
 
-    for layer in layers {
-        let count_0 = layer.iter().filter(|&&n| n == 0u32).count();
+            let c_0 = map.get(&0).unwrap_or(&0);
+            let c_1 = map.get(&1).unwrap_or(&0);
+            let c_2 = map.get(&2).unwrap_or(&0);
 
-        if count_0 < fewest_0 {
-            fewest_0 = count_0;
-            fewest_0_layer = layer;
-        }
-    }
+            if c_0 < &min {
+                (*c_0, (*c_1, *c_2))
+            } else {
+                (min, (count_1, count_2))
+            }
+        });
 
-    let count_1 = fewest_0_layer.iter().filter(|&&n| n == 1u32).count();
-    let count_2 = fewest_0_layer.iter().filter(|&&n| n == 2u32).count();
-
-    count_1 * count_2
+    min_layer.1 .0 * min_layer.1 .1
 }
 
 fn main() {
